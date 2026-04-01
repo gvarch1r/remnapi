@@ -181,6 +181,11 @@ class ExternalSquadsCompat:
         )
 
 
+def _uuid_str(v: Union[str, UUID]) -> str:
+    """OpenAPI-клиент ждёт ``StrictStr`` в path; ``UUID`` pydantic не приводит сам."""
+    return str(v)
+
+
 class UsersCompat:
     __slots__ = ("_api",)
 
@@ -202,7 +207,9 @@ class UsersCompat:
 
     async def delete_user(self, uuid: Union[str, UUID], *args: Any, **kwargs: Any):
         return unwrap_inner(
-            await self._api.users_controller_delete_user(uuid, *args, **kwargs)
+            await self._api.users_controller_delete_user(
+                _uuid_str(uuid), *args, **kwargs
+            )
         )
 
     async def revoke_user_subscription(
@@ -216,7 +223,7 @@ class UsersCompat:
         return coerce_user_response(
             unwrap_inner(
                 await self._api.users_controller_revoke_user_subscription(
-                    str(uuid), b, *args, **kwargs
+                    _uuid_str(uuid), b, *args, **kwargs
                 )
             )
         )
@@ -224,28 +231,36 @@ class UsersCompat:
     async def disable_user(self, uuid: Union[str, UUID], *args: Any, **kwargs: Any):
         return coerce_user_response(
             unwrap_inner(
-                await self._api.users_controller_disable_user(uuid, *args, **kwargs)
+                await self._api.users_controller_disable_user(
+                    _uuid_str(uuid), *args, **kwargs
+                )
             )
         )
 
     async def enable_user(self, uuid: Union[str, UUID], *args: Any, **kwargs: Any):
         return coerce_user_response(
             unwrap_inner(
-                await self._api.users_controller_enable_user(uuid, *args, **kwargs)
+                await self._api.users_controller_enable_user(
+                    _uuid_str(uuid), *args, **kwargs
+                )
             )
         )
 
     async def reset_user_traffic(self, uuid: Union[str, UUID], *args: Any, **kwargs: Any):
         return coerce_user_response(
             unwrap_inner(
-                await self._api.users_controller_reset_user_traffic(uuid, *args, **kwargs)
+                await self._api.users_controller_reset_user_traffic(
+                    _uuid_str(uuid), *args, **kwargs
+                )
             )
         )
 
     async def get_user_by_uuid(self, uuid: Union[str, UUID], *args: Any, **kwargs: Any):
         return coerce_user_response(
             unwrap_inner(
-                await self._api.users_controller_get_user_by_uuid(uuid, *args, **kwargs)
+                await self._api.users_controller_get_user_by_uuid(
+                    _uuid_str(uuid), *args, **kwargs
+                )
             )
         )
 
