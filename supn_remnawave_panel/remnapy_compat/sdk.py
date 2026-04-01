@@ -32,6 +32,7 @@ from supn_remnawave_panel.remnapy_compat.models import (
     TelegramUserResponseDto,
     coerce_user_response,
     unwrap_inner,
+    unwrap_until_attr,
 )
 from supn_remnawave_panel.remnapy_compat.webhooks import WebhookUtility
 from supn_remnawave_panel.remnapy_compat._remna_api_client import RemnaApiClient
@@ -145,10 +146,39 @@ class InternalSquadsCompat:
         r = await self._api.internal_squad_controller_get_internal_squads(
             *args, **kwargs
         )
-        return unwrap_inner(r)
+        return unwrap_until_attr(r, "internal_squads")
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self._api, name)
+
+
+class ExternalSquadsCompat:
+    """Как remnapy: ``get_external_squads`` отдаёт объект с полем ``external_squads``."""
+
+    __slots__ = ("_api", "_prefix")
+
+    def __init__(self, api: object) -> None:
+        object.__setattr__(self, "_api", api)
+        object.__setattr__(self, "_prefix", "external_squad_controller")
+
+    async def get_external_squads(self, *args: Any, **kwargs: Any):
+        r = await self._api.external_squad_controller_get_external_squads(
+            *args, **kwargs
+        )
+        return unwrap_until_attr(r, "external_squads")
+
+    def __getattr__(self, name: str) -> Any:
+        if name.startswith("_"):
+            raise AttributeError(name)
+        long = f"{self._prefix}_{name}"
+        fn = getattr(self._api, long, None)
+        if callable(fn):
+            return fn
+        if hasattr(self._api, name):
+            return getattr(self._api, name)
+        raise AttributeError(
+            f"{type(self._api).__name__!r} has no attribute {long!r} or {name!r}"
+        )
 
 
 class UsersCompat:
@@ -412,9 +442,7 @@ class RemnawaveSDK:
         self.webhook_utility = WebhookUtility()
         self.xray_config = _LegacyControllerStub("xray_config")
         self.passkeys = PrefixProxy(self._panel.passkeys, "passkey_controller")
-        self.external_squads = PrefixProxy(
-            self._panel.external_squads, "external_squad_controller"
-        )
+        self.external_squads = ExternalSquadsCompat(self._panel.external_squads)
         self.snippets = PrefixProxy(self._panel.snippets, "snippets_controller")
         self.remnawave_settings = PrefixProxy(
             self._panel.remnawave_settings, "remnawave_settings_controller"

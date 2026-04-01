@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 from uuid import UUID
 
 from pydantic import RootModel
@@ -45,6 +45,7 @@ __all__ = [
     "UserResponseDto",
     "coerce_user_response",
     "unwrap_inner",
+    "unwrap_until_attr",
 ]
 
 
@@ -94,6 +95,21 @@ def unwrap_inner(m: object | None) -> object | None:
     if inner is not None:
         return inner
     return m
+
+
+def unwrap_until_attr(m: object | None, attr: str) -> object | None:
+    """Снять обёртки ``response``, пока у модели не появится поле как у remnapy (``internal_squads`` и т.д.)."""
+    cur: Any = m
+    for _ in range(5):
+        if cur is None:
+            return None
+        if hasattr(cur, attr):
+            return cur
+        nxt = unwrap_inner(cur)
+        if nxt is cur:
+            return cur
+        cur = nxt
+    return cur
 
 
 def coerce_user_response(m: object | None) -> UserResponseDto | None:
