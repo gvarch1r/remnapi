@@ -133,6 +133,24 @@ class NodesCompat:
         return getattr(self._api, name)
 
 
+class InternalSquadsCompat:
+    """Как remnapy: ``get_internal_squads`` отдаёт объект с полем ``internal_squads``."""
+
+    __slots__ = ("_api",)
+
+    def __init__(self, api: object) -> None:
+        object.__setattr__(self, "_api", api)
+
+    async def get_internal_squads(self, *args: Any, **kwargs: Any):
+        r = await self._api.internal_squad_controller_get_internal_squads(
+            *args, **kwargs
+        )
+        return unwrap_inner(r)
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._api, name)
+
+
 class UsersCompat:
     __slots__ = ("_api",)
 
@@ -366,9 +384,7 @@ class RemnawaveSDK:
         self.infra_billing = PrefixProxy(
             self._panel.infra_billing, "infra_billing_controller"
         )
-        self.internal_squads = PrefixProxy(
-            self._panel.internal_squads, "internal_squad_controller"
-        )
+        self.internal_squads = InternalSquadsCompat(self._panel.internal_squads)
         self.keygen = PrefixProxy(self._panel.keygen, "keygen_controller")
         self.node_plugins = PrefixProxy(self._panel.node_plugins, "node_plugin_controller")
         self.nodes = NodesCompat(self._panel.nodes)
