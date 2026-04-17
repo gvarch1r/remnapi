@@ -86,6 +86,17 @@ class TelegramUserResponseDto(RootModel[list[UserResponseDto]]):
 
     root: list[UserResponseDto]
 
+    def __bool__(self) -> bool:
+        """Пустой список → False (как у list), чтобы ``if result`` работал ожидаемо."""
+        return bool(self.root)
+
+    def __len__(self) -> int:
+        return len(self.root)
+
+    def __getitem__(self, key: int | slice) -> Any:
+        """Совместимость с кодом, который делает ``result[0]`` вместо ``result.root[0]``."""
+        return self.root[key]
+
 
 def unwrap_inner(m: object | None) -> object | None:
     """Снять один уровень ``response``, если поле есть (формат панели 2.7+)."""
