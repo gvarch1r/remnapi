@@ -308,9 +308,10 @@ class HWIDCompat:
         object.__setattr__(self, "_api", api)
 
     async def get_hwid_user(self, uuid: Union[str, UUID], *args: Any, **kwargs: Any):
+        # OpenAPI client validates user_uuid as StrictStr; pass str, not uuid.UUID.
         return unwrap_inner(
             await self._api.hwid_user_devices_controller_get_user_hwid_devices(
-                uuid, *args, **kwargs
+                str(uuid), *args, **kwargs
             )
         )
 
